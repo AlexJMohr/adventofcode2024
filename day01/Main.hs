@@ -13,7 +13,7 @@ main = do
 part1 :: ([Int], [Int]) -> IO ()
 part1 (xs, ys) = do
   let (xs', ys') = (sort xs, sort ys)
-  let totalDistance = sum (zipWith (\x y -> abs (x - y)) xs' ys')
+  let totalDistance = sum $ zipWith (\x y -> abs (x - y)) xs' ys'
   putStrLn $ "Part 1: " ++ show totalDistance
 
 part2 :: ([Int], [Int]) -> IO ()
