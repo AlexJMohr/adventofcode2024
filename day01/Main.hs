@@ -13,7 +13,7 @@ main = do
 part1 :: ([Int], [Int]) -> IO ()
 part1 (xs, ys) = do
   let (xs', ys') = (sort xs, sort ys)
-  let totalDistance = sum $ zipWith (\x y -> abs (x - y)) xs' ys'
+  let totalDistance = sum $ zipWith distance xs' ys'
   putStrLn $ "Part 1: " ++ show totalDistance
 
 part2 :: ([Int], [Int]) -> IO ()
@@ -28,6 +28,9 @@ readPair :: String -> (Int, Int)
 readPair line = case words line of
   [x, y] -> (read x, read y)
   _ -> error "Invalid input"
+
+distance :: Num a => a -> a -> a
+distance x y = abs (x - y)
 
 countOccurrences :: Eq a => a -> [a] -> Int
 countOccurrences x = length . filter (== x)
