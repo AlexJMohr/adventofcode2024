@@ -6,7 +6,7 @@ import Lib (readFileFromArgs)
 main :: IO ()
 main = do
   contents <- readFileFromArgs
-  let (xs, ys) = unzip (readPairs contents)
+  let (xs, ys) = unzip $ readPairs contents
   part1 (xs, ys)
   part2 (xs, ys)
 
