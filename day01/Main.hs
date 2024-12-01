@@ -18,8 +18,8 @@ part1 (xs, ys) = do
 
 part2 :: ([Int], [Int]) -> IO ()
 part2 (xs, ys) = do
-  let total = sum $ map (\x -> x * countOccurrences x ys) xs
-  putStrLn $ "Part 2: " ++ show total
+  let totalScore = sum $ map (\x -> x * occurrences x ys) xs
+  putStrLn $ "Part 2: " ++ show totalScore
 
 readPairs :: String -> [(Int, Int)]
 readPairs = map readPair . lines
@@ -32,5 +32,5 @@ readPair line = case words line of
 distance :: Num a => a -> a -> a
 distance x y = abs (x - y)
 
-countOccurrences :: Eq a => a -> [a] -> Int
-countOccurrences x = length . filter (== x)
+occurrences :: Eq a => a -> [a] -> Int
+occurrences x = length . filter (== x)
