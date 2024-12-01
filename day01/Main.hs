@@ -1,14 +1,14 @@
 module Main (main) where
 
-import qualified Data.List as List
+import Data.List (sort)
 import Lib (readFileFromArgs)
 
 main :: IO ()
 main = do
   contents <- readFileFromArgs
   let (xs, ys) = unzip (readPairs contents)
-  let (xs', ys') = (List.sort xs, List.sort ys)
-  let totalDistance = sum (zipWith distance xs' ys')
+  let (xs', ys') = (sort xs, sort ys)
+  let totalDistance = sum (zipWith (\x y -> abs (x - y)) xs' ys')
   print totalDistance
 
 readPairs :: String -> [(Int, Int)]
@@ -18,6 +18,3 @@ readPair :: String -> (Int, Int)
 readPair line = case words line of
   [x, y] -> (read x, read y)
   _ -> error "Invalid input"
-
-distance :: Int -> Int -> Int
-distance x y = abs (x - y)
