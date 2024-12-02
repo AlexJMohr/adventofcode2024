@@ -49,6 +49,10 @@ executables:
     <<: *exe-defs
     main: Main.hs
     source-dirs: day01
+  day02:
+    <<: *exe-defs
+    main: Main.hs
+    source-dirs: day02
 
 tests:
   adventofcode2024-test:

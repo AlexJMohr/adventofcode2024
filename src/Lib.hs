@@ -1,4 +1,4 @@
-module Lib (readFileFromArgs) where
+module Lib (readFileFromArgs, distance) where
 
 import System.Environment (getArgs)
 import System.Exit (die)
@@ -9,3 +9,6 @@ readFileFromArgs = do
   case args of
     (file : _) -> readFile file
     _ -> die "Usage: day01 <filename>"
+
+distance :: Int -> Int -> Int
+distance = (abs .) . (-)

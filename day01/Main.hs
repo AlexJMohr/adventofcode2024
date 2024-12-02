@@ -1,7 +1,7 @@
 module Main (main) where
 
 import Data.List (sort)
-import Lib (readFileFromArgs)
+import Lib (distance, readFileFromArgs)
 
 main :: IO ()
 main = do
@@ -28,9 +28,6 @@ readPair :: String -> (Int, Int)
 readPair line = case words line of
   [x, y] -> (read x, read y)
   _ -> error "Invalid input"
-
-distance :: Num a => a -> a -> a
-distance = (abs .) . (-)
 
 occurrences :: Eq a => a -> [a] -> Int
 occurrences = (length .) . filter . (==)
