@@ -7,5 +7,5 @@ readFileFromArgs :: IO String
 readFileFromArgs = do
   args <- getArgs
   case args of
-    (_ : file : _) -> readFile file
+    (file : _) -> readFile file
     _ -> die "Usage: day01 <filename>"

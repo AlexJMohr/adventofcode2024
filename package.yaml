@@ -36,16 +36,19 @@ ghc-options:
 library:
   source-dirs: src
 
+_exe-defs: &exe-defs
+  ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+  dependencies:
+    - adventofcode2024
+
 executables:
-  adventofcode2024-exe:
+  day01:
+    <<: *exe-defs
     main: Main.hs
     source-dirs: day01
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-    dependencies:
-      - adventofcode2024
 
 tests:
   adventofcode2024-test:
