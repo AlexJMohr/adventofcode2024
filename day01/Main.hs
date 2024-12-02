@@ -18,7 +18,7 @@ part1 (xs, ys) = do
 
 part2 :: ([Int], [Int]) -> IO ()
 part2 (xs, ys) = do
-  let totalScore = sum $ map (`occurrences` ys) xs
+  let totalScore = sum $ map (\x -> x * occurrences x ys) xs
   putStrLn $ "Part 2: " ++ show totalScore
 
 readPairs :: String -> [(Int, Int)]
