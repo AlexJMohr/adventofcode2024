@@ -10,5 +10,5 @@ readFileFromArgs = do
     (file : _) -> readFile file
     _ -> die "Usage: day01 <filename>"
 
-distance :: Int -> Int -> Int
+distance :: Num a => a -> a -> a
 distance = (abs .) . (-)
