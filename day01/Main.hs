@@ -18,7 +18,7 @@ part1 (xs, ys) = do
 
 part2 :: ([Int], [Int]) -> IO ()
 part2 (xs, ys) = do
-  let totalScore = sum $ map (\x -> x * occurrences x ys) xs
+  let totalScore = sum $ map (`occurrences` ys) xs
   putStrLn $ "Part 2: " ++ show totalScore
 
 readPairs :: String -> [(Int, Int)]
@@ -30,7 +30,7 @@ readPair line = case words line of
   _ -> error "Invalid input"
 
 distance :: Num a => a -> a -> a
-distance x y = abs (x - y)
+distance = (abs .) . (-)
 
 occurrences :: Eq a => a -> [a] -> Int
-occurrences x = length . filter (== x)
+occurrences = (length .) . filter . (==)
