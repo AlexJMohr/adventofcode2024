@@ -43,6 +43,7 @@ _exe-defs: &exe-defs
     - -with-rtsopts=-N
   dependencies:
     - adventofcode2024
+    - regex-tdfa
 
 executables:
   day01:
@@ -53,6 +54,10 @@ executables:
     <<: *exe-defs
     main: Main.hs
     source-dirs: day02
+  day03:
+    <<: *exe-defs
+    main: Main.hs
+    source-dirs: day03
 
 tests:
   adventofcode2024-test:
