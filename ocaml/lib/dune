@@ -1,0 +1,4 @@
+(library
+ (name lib)
+ (modules common)
+ (public_name aoc.lib))

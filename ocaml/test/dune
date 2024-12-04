@@ -1,0 +1,4 @@
+(test
+ (name test_day01)
+ (modules test_day01)
+ (libraries alcotest lib solutions))

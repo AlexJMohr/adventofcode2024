@@ -1,0 +1,4 @@
+(library
+ (name solutions)
+ (modules day01)
+ (libraries aoc.lib))
