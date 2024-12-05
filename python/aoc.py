@@ -4,23 +4,23 @@ import re
 
 import click
 
+
 @click.group()
 def cli():
     pass
 
 
 @cli.command()
-@click.argument('file', type=click.File())
+@click.argument("file", type=click.File())
 def day01(file):
     def parse(file):
         xs = []
         ys = []
         for line in file:
-            x, y = re.search(r'(\d+)\s+(\d+)', line).groups()
+            x, y = re.search(r"(\d+)\s+(\d+)", line).groups()
             xs.append(int(x))
             ys.append(int(y))
         return xs, ys
-    
 
     def distance(x, y):
         return abs(x - y)
@@ -41,6 +41,7 @@ def day01(file):
     xs, ys = parse(file)
     part1(xs, ys)
     part2(xs, ys)
+
 
 if __name__ == "__main__":
     cli()
