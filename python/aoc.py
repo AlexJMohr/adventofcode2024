@@ -3,6 +3,7 @@
 import re
 
 import click
+import numpy as np
 
 
 @click.group()
@@ -74,6 +75,45 @@ def day03(file):
     contents = file.read()
     part1(contents)
     part2(contents)
+
+
+@cli.command()
+@click.argument("file", type=click.File())
+def day04(file):
+    def grid2str(grid):
+        lines = []
+        for row in grid:
+            lines.append("".join(row))
+        return "\n".join(lines)
+
+    def count_horizontal(grid):
+        return len(re.findall(r"XMAS", grid2str(grid)))
+    
+    def count_diagonal(grid):
+        rows, cols = grid.shape
+        count = 0
+        for row in range(rows - 3):
+            for col in range(cols - 3):
+                if grid[row, col] == "X" and grid[row+1, col+1] == "M" and grid[row+2, col+2] == "A" and grid[row+3, col+3] == "S":
+                    count += 1
+        return count
+    
+    contents = file.read()
+    grid = np.array([list(line) for line in contents.splitlines()])
+
+    # horizontal
+    total = count_horizontal(np.copy(grid))
+    total += count_horizontal(np.fliplr(np.copy(grid)))
+    # vertical by transposing the grid
+    total += count_horizontal(np.transpose(np.copy(grid)))
+    total += count_horizontal(np.fliplr(np.transpose(np.copy(grid))))
+    # diagonal
+    total += count_diagonal(np.copy(grid))
+    total += count_diagonal(np.fliplr(np.copy(grid)))
+    total += count_diagonal(np.flipud(np.copy(grid)))
+    total += count_diagonal(np.flipud(np.fliplr(np.copy(grid))))
+    print(total)
+
 
 
 if __name__ == "__main__":
