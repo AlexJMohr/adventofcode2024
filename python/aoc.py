@@ -43,5 +43,38 @@ def day01(file):
     part2(xs, ys)
 
 
+@cli.command()
+@click.argument("file", type=click.File())
+def day03(file):
+    def part1(contents):
+        pattern = re.compile(r"mul\((\d+),(\d+)\)")
+        muls = pattern.findall(contents)
+        total = sum(int(x) * int(y) for x, y in muls)
+        print("Part 1:", total)
+    
+    def part2(contents):
+        pattern = re.compile(r"(do|don't|mul)\((?:(\d+),(\d+))?\)")
+        matches = pattern.findall(contents)
+
+        total = 0
+        do = True
+        for (instruction, x, y) in matches:
+            if instruction == "do":
+                do = True
+            elif instruction == "don't":
+                do = False
+            elif instruction == "mul":
+                if do:
+                    x = int(x)
+                    y = int(y)
+                    total += x * y
+
+        print("Part 2:", total)
+    
+    contents = file.read()
+    part1(contents)
+    part2(contents)
+
+
 if __name__ == "__main__":
     cli()
