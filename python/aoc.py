@@ -97,22 +97,54 @@ def day04(file):
                 if grid[row, col] == "X" and grid[row+1, col+1] == "M" and grid[row+2, col+2] == "A" and grid[row+3, col+3] == "S":
                     count += 1
         return count
+
+    def part1(contents):
+        # horizontal
+        total = count_horizontal(np.copy(grid))
+        total += count_horizontal(np.fliplr(np.copy(grid)))
+        # vertical by transposing the grid
+        total += count_horizontal(np.transpose(np.copy(grid)))
+        total += count_horizontal(np.fliplr(np.transpose(np.copy(grid))))
+        # diagonal
+        total += count_diagonal(np.copy(grid))
+        total += count_diagonal(np.fliplr(np.copy(grid)))
+        total += count_diagonal(np.flipud(np.copy(grid)))
+        total += count_diagonal(np.flipud(np.fliplr(np.copy(grid))))
+        print("Part 1:", total)
+    
+    def part2(contents):
+        pattern = np.array([
+            ["M", "", "M"],
+            ["", "A", ""],
+            ["S", "", "S"],
+        ])
+        count = 0
+        rows, cols = grid.shape
+        for row in range(1, rows - 1):
+            for col in range(1, cols - 1):
+                if grid[row, col] == "A":
+                    mini_grid = np.copy(grid[row-1:row+2, col-1:col+2])
+                    # clear sides
+                    mini_grid[0, 1] = ""
+                    mini_grid[2, 1] = ""
+                    mini_grid[1, 0] = ""
+                    mini_grid[1, 2] = ""
+
+                    if np.array_equal(mini_grid, pattern):
+                        count += 1
+                    elif np.array_equal(np.rot90(mini_grid, 1), pattern):
+                        count += 1
+                    elif np.array_equal(np.rot90(mini_grid, 2), pattern):
+                        count += 1
+                    elif np.array_equal(np.rot90(mini_grid, 3), pattern):
+                        count += 1
+
+        print("Part 2:", count)
     
     contents = file.read()
     grid = np.array([list(line) for line in contents.splitlines()])
-
-    # horizontal
-    total = count_horizontal(np.copy(grid))
-    total += count_horizontal(np.fliplr(np.copy(grid)))
-    # vertical by transposing the grid
-    total += count_horizontal(np.transpose(np.copy(grid)))
-    total += count_horizontal(np.fliplr(np.transpose(np.copy(grid))))
-    # diagonal
-    total += count_diagonal(np.copy(grid))
-    total += count_diagonal(np.fliplr(np.copy(grid)))
-    total += count_diagonal(np.flipud(np.copy(grid)))
-    total += count_diagonal(np.flipud(np.fliplr(np.copy(grid))))
-    print(total)
+    part1(np.copy(grid))
+    part2(np.copy(grid))
 
 
 
