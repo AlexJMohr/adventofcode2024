@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from functools import cmp_to_key
+from itertools import cycle
 import re
 
 import click
@@ -210,6 +211,39 @@ def day05(file):
     rules, updates = parse(contents)
     part1(rules, updates)
     part2(rules, updates)
+
+
+@cli.command()
+@click.argument("file", type=click.File())
+def day06(file):
+    def parse(contents):
+        grid = np.array([list(line) for line in contents.splitlines()])
+        starting_coords = np.where(grid == "^")
+        x, y = starting_coords[1][0], starting_coords[0][0]
+        return grid, x, y
+
+    def part1(grid, x, y):
+        visited_spaces = set()
+        visited_spaces.add((x, y))
+
+        dirs = cycle([(0, -1), (1, 0), (0, 1), (-1, 0)])  # up, right, down, left
+        dir = next(dirs)
+        width, height = grid.shape
+        while True:
+            next_x = x + dir[0]
+            next_y = y + dir[1]
+            if next_y < 0 or next_y >= height or next_x < 0 or next_x >= width:
+                break
+            elif grid[next_y, next_x] == "#":
+                dir = next(dirs)
+            else:
+                x, y = next_x, next_y
+                visited_spaces.add((x, y))
+                grid[y, x] = "X"
+        print("Part 1:", len(visited_spaces))
+
+    contents = file.read()
+    part1(*parse(contents))
 
 
 if __name__ == "__main__":
