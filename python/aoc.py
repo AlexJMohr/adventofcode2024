@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
+from collections import defaultdict
 from functools import cmp_to_key
-from itertools import cycle
 import re
 
 import click
@@ -79,15 +79,16 @@ def day03(file):
     part2(contents)
 
 
+def grid2str(grid):
+    lines = []
+    for row in grid:
+        lines.append("".join(row))
+    return "\n".join(lines)
+
+
 @cli.command()
 @click.argument("file", type=click.File())
 def day04(file):
-    def grid2str(grid):
-        lines = []
-        for row in grid:
-            lines.append("".join(row))
-        return "\n".join(lines)
-
     def count_horizontal(grid):
         return len(re.findall(r"XMAS", grid2str(grid)))
 
@@ -216,6 +217,9 @@ def day05(file):
 @cli.command()
 @click.argument("file", type=click.File())
 def day06(file):
+    def turn_right(dir):
+        return (-dir[1], dir[0])
+
     def parse(contents):
         grid = np.array([list(line) for line in contents.splitlines()])
         starting_coords = np.where(grid == "^")
@@ -223,11 +227,10 @@ def day06(file):
         return grid, x, y
 
     def part1(grid, x, y):
-        visited_spaces = set()
-        visited_spaces.add((x, y))
+        visited = set()
+        visited.add((x, y))
 
-        dirs = cycle([(0, -1), (1, 0), (0, 1), (-1, 0)])  # up, right, down, left
-        dir = next(dirs)
+        dir = (0, -1)  # up
         width, height = grid.shape
         while True:
             next_x = x + dir[0]
@@ -235,15 +238,62 @@ def day06(file):
             if next_y < 0 or next_y >= height or next_x < 0 or next_x >= width:
                 break
             elif grid[next_y, next_x] == "#":
-                dir = next(dirs)
+                dir = turn_right(dir)
             else:
                 x, y = next_x, next_y
-                visited_spaces.add((x, y))
+                visited.add((x, y))
                 grid[y, x] = "X"
-        print("Part 1:", len(visited_spaces))
+        print("Part 1:", len(visited))
+
+    def part2(grid, x, y):
+        width, height = grid.shape
+        dir = (0, -1)
+        visited = defaultdict(set)
+
+        def walk_backwards(x, y, dir):
+            # walk backwards from current position until the edge or "#", and mark the current direction
+            while x >= 0 and x < width and y >= 0 and y < height and grid[y, x] != "#":
+                visited[(x, y)].add(dir)
+                # grid[y, x] = "X"
+                x -= dir[0]
+                y -= dir[1]
+
+        walk_backwards(x, y, dir)
+
+        obstacle_positions = set()
+        while True:
+            next_x = x + dir[0]
+            next_y = y + dir[1]
+
+            # check if we're about to walk off the grid
+            if next_y < 0 or next_y >= height or next_x < 0 or next_x >= width:
+                break
+
+            # every time we turn, walk backwards and mark the new direction
+            if grid[next_y, next_x] == "#":
+                dir = turn_right(dir)
+                walk_backwards(x, y, dir)
+
+            next_x = x + dir[0]
+            next_y = y + dir[1]
+
+            if visited_dirs := visited.get((x, y)):
+                # We're on a previously visited spot.
+                # If we turn right, have we already gone that direction?
+                # If so, we could put an obstacle in front of us.
+                if turn_right(dir) in visited_dirs:
+                    obstacle_positions.add((next_x, next_y))
+                    grid[next_y, next_x] = "O"
+
+            visited[(x, y)].add(dir)
+            x, y = next_x, next_y
+
+        # 551 too low
+        print("Part 2:", len(obstacle_positions))
 
     contents = file.read()
     part1(*parse(contents))
+    part2(*parse(contents))
 
 
 if __name__ == "__main__":
