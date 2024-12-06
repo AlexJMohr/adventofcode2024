@@ -118,6 +118,7 @@ def day04(file):
             ["", "A", ""],
             ["S", "", "S"],
         ])
+
         count = 0
         rows, cols = grid.shape
         for row in range(1, rows - 1):
@@ -146,6 +147,47 @@ def day04(file):
     part1(np.copy(grid))
     part2(np.copy(grid))
 
+
+
+@cli.command()
+@click.argument("file", type=click.File())
+def day05(file):
+    def parse(contents):
+        rules = []
+        updates = []
+        lines = contents.splitlines()
+        line_iter = iter(lines)
+        for line in line_iter:
+            if len(line) == 0:
+                break
+            x, y = line.split("|")
+            rules.append((int(x), int(y)))
+        for line in line_iter:
+            updates.append([int(x) for x in line.split(",")])
+        return rules, updates
+        
+    def part1(contents):
+        rules, updates = parse(contents)
+        correct_updates = []
+        for update in updates:
+            for x, y in rules:
+                try:
+                    if update.index(x) > update.index(y):
+                        break
+                except ValueError:
+                    # if either value is not in the list, rule doesn't apply
+                    continue
+            else:
+                correct_updates.append(update)
+        
+        total = 0
+        for update in correct_updates:
+            total += update[len(update)//2]
+        print("Part 1:", total)
+
+    
+    contents = file.read()
+    part1(contents)
 
 
 if __name__ == "__main__":
