@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from functools import cmp_to_key
 import re
 
 import click
@@ -52,14 +53,14 @@ def day03(file):
         muls = pattern.findall(contents)
         total = sum(int(x) * int(y) for x, y in muls)
         print("Part 1:", total)
-    
+
     def part2(contents):
         pattern = re.compile(r"(do|don't|mul)\((?:(\d+),(\d+))?\)")
         matches = pattern.findall(contents)
 
         total = 0
         do = True
-        for (instruction, x, y) in matches:
+        for instruction, x, y in matches:
             if instruction == "do":
                 do = True
             elif instruction == "don't":
@@ -71,7 +72,7 @@ def day03(file):
                     total += x * y
 
         print("Part 2:", total)
-    
+
     contents = file.read()
     part1(contents)
     part2(contents)
@@ -88,13 +89,18 @@ def day04(file):
 
     def count_horizontal(grid):
         return len(re.findall(r"XMAS", grid2str(grid)))
-    
+
     def count_diagonal(grid):
         rows, cols = grid.shape
         count = 0
         for row in range(rows - 3):
             for col in range(cols - 3):
-                if grid[row, col] == "X" and grid[row+1, col+1] == "M" and grid[row+2, col+2] == "A" and grid[row+3, col+3] == "S":
+                if (
+                    grid[row, col] == "X"
+                    and grid[row + 1, col + 1] == "M"
+                    and grid[row + 2, col + 2] == "A"
+                    and grid[row + 3, col + 3] == "S"
+                ):
                     count += 1
         return count
 
@@ -111,20 +117,22 @@ def day04(file):
         total += count_diagonal(np.flipud(np.copy(grid)))
         total += count_diagonal(np.flipud(np.fliplr(np.copy(grid))))
         print("Part 1:", total)
-    
+
     def part2(contents):
-        pattern = np.array([
-            ["M", "", "M"],
-            ["", "A", ""],
-            ["S", "", "S"],
-        ])
+        pattern = np.array(
+            [
+                ["M", "", "M"],
+                ["", "A", ""],
+                ["S", "", "S"],
+            ]
+        )
 
         count = 0
         rows, cols = grid.shape
         for row in range(1, rows - 1):
             for col in range(1, cols - 1):
                 if grid[row, col] == "A":
-                    mini_grid = np.copy(grid[row-1:row+2, col-1:col+2])
+                    mini_grid = np.copy(grid[row - 1 : row + 2, col - 1 : col + 2])
                     # clear sides
                     mini_grid[0, 1] = ""
                     mini_grid[2, 1] = ""
@@ -141,19 +149,18 @@ def day04(file):
                         count += 1
 
         print("Part 2:", count)
-    
+
     contents = file.read()
     grid = np.array([list(line) for line in contents.splitlines()])
     part1(np.copy(grid))
     part2(np.copy(grid))
 
 
-
 @cli.command()
 @click.argument("file", type=click.File())
 def day05(file):
     def parse(contents):
-        rules = []
+        rules = set()
         updates = []
         lines = contents.splitlines()
         line_iter = iter(lines)
@@ -161,11 +168,11 @@ def day05(file):
             if len(line) == 0:
                 break
             x, y = line.split("|")
-            rules.append((int(x), int(y)))
+            rules.add((int(x), int(y)))
         for line in line_iter:
             updates.append([int(x) for x in line.split(",")])
         return rules, updates
-    
+
     def is_correct(rules, update):
         for x, y in rules:
             try:
@@ -175,46 +182,30 @@ def day05(file):
                 # if either value is not in the list, rule doesn't apply
                 continue
         return True
-        
+
+    def total(updates):
+        return sum(update[len(update) // 2] for update in updates)
+
     def part1(rules, updates):
         correct_updates = [update for update in updates if is_correct(rules, update)]
-        total = 0
-        for update in correct_updates:
-            total += update[len(update)//2]
-        print("Part 1:", total)
-    
+        print("Part 1:", total(correct_updates))
+
     def part2(rules, updates):
-        # rules = sorted(rules)
+        def compare(a, b):
+            if (a, b) in rules:
+                return 1
+            elif (b, a) in rules:
+                return -1
+            else:
+                return 0
 
-        # combine the rules into a flat list to determine the order
-        combined_rules = []
-        for x, y in rules:
-            combined_rules.append(x)
-            combined_rules.append(y)
-        combined_rules = sorted(combined_rules)
+        corrected_updates = [
+            sorted(update, key=cmp_to_key(compare))
+            for update in updates
+            if not is_correct(rules, update)
+        ]
+        print("Part 2:", total(corrected_updates))
 
-        corrected_updates = []
-        for update in updates:
-            if not is_correct(rules, update):
-                for x, y in rules:
-                    try:
-                        x_idx = update.index(x)
-                        y_idx = update.index(y)
-                    except ValueError:
-                        # rule doesn't apply
-                        continue
-                    if x_idx > y_idx:
-                        update[x_idx], update[y_idx] = update[y_idx], update[x_idx]
-                corrected_updates.append(update)
-        
-        for update in corrected_updates:
-            print(update)
-        total = 0
-        for update in corrected_updates:
-            total += update[len(update)//2]
-        print("Part 2:", total)
-
-    # 5021 too high
     contents = file.read()
     rules, updates = parse(contents)
     part1(rules, updates)
