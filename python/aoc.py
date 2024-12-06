@@ -165,29 +165,60 @@ def day05(file):
         for line in line_iter:
             updates.append([int(x) for x in line.split(",")])
         return rules, updates
+    
+    def is_correct(rules, update):
+        for x, y in rules:
+            try:
+                if update.index(x) > update.index(y):
+                    return False
+            except ValueError:
+                # if either value is not in the list, rule doesn't apply
+                continue
+        return True
         
-    def part1(contents):
-        rules, updates = parse(contents)
-        correct_updates = []
-        for update in updates:
-            for x, y in rules:
-                try:
-                    if update.index(x) > update.index(y):
-                        break
-                except ValueError:
-                    # if either value is not in the list, rule doesn't apply
-                    continue
-            else:
-                correct_updates.append(update)
-        
+    def part1(rules, updates):
+        correct_updates = [update for update in updates if is_correct(rules, update)]
         total = 0
         for update in correct_updates:
             total += update[len(update)//2]
         print("Part 1:", total)
-
     
+    def part2(rules, updates):
+        # rules = sorted(rules)
+
+        # combine the rules into a flat list to determine the order
+        combined_rules = []
+        for x, y in rules:
+            combined_rules.append(x)
+            combined_rules.append(y)
+        combined_rules = sorted(combined_rules)
+
+        corrected_updates = []
+        for update in updates:
+            if not is_correct(rules, update):
+                for x, y in rules:
+                    try:
+                        x_idx = update.index(x)
+                        y_idx = update.index(y)
+                    except ValueError:
+                        # rule doesn't apply
+                        continue
+                    if x_idx > y_idx:
+                        update[x_idx], update[y_idx] = update[y_idx], update[x_idx]
+                corrected_updates.append(update)
+        
+        for update in corrected_updates:
+            print(update)
+        total = 0
+        for update in corrected_updates:
+            total += update[len(update)//2]
+        print("Part 2:", total)
+
+    # 5021 too high
     contents = file.read()
-    part1(contents)
+    rules, updates = parse(contents)
+    part1(rules, updates)
+    part2(rules, updates)
 
 
 if __name__ == "__main__":
