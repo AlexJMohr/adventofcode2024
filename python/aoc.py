@@ -226,8 +226,8 @@ def day06(file):
         return grid, x, y
 
     def walk(grid, start_x, start_y):
-        width, height = grid.shape
         # yield positions and directions
+        width, height = grid.shape
         x, y = start_x, start_y
         dir = (0, -1)
         while True:
@@ -241,10 +241,8 @@ def day06(file):
             x, y = next_x, next_y
 
     def part1(contents):
-        grid, x, y = parse(contents)
-        visited = set()
-        for x, y, _ in walk(grid, x, y):
-            visited.add((x, y))
+        grid, start_x, start_y = parse(contents)
+        visited = {(x, y) for x, y, _ in walk(grid, start_x, start_y)}
         print("Part 1:", len(visited))
 
     def part2(contents):
