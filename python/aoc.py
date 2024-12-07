@@ -309,7 +309,10 @@ def day07(file):
 
     def part2(contents):
         def concat(x, y):
-            return int(str(x) + str(y))
+            power = 10
+            while y >= power:
+                power *= 10
+            return x * power + y
 
         equations = parse(contents)
         operators = [operator.add, operator.mul, concat]
