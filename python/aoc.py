@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from collections import defaultdict
 from functools import cmp_to_key
 import re
 
@@ -220,13 +219,17 @@ def day06(file):
     def turn_right(dir):
         return (-dir[1], dir[0])
 
+    def turn_left(dir):
+        return (dir[1], -dir[0])
+
     def parse(contents):
         grid = np.array([list(line) for line in contents.splitlines()])
         starting_coords = np.where(grid == "^")
-        x, y = starting_coords[1][0], starting_coords[0][0]
+        x, y = int(starting_coords[1][0]), int(starting_coords[0][0])
         return grid, x, y
 
-    def part1(grid, x, y):
+    def part1(contents):
+        grid, x, y = parse(contents)
         visited = set()
         visited.add((x, y))
 
@@ -245,55 +248,43 @@ def day06(file):
                 grid[y, x] = "X"
         print("Part 1:", len(visited))
 
-    def part2(grid, x, y):
+    def part2(contents):
+        grid, start_x, start_y = parse(contents)
         width, height = grid.shape
-        dir = (0, -1)
-        visited = defaultdict(set)
 
-        def walk_backwards(x, y, dir):
-            # walk backwards from current position until the edge or "#", and mark the current direction
-            while x >= 0 and x < width and y >= 0 and y < height and grid[y, x] != "#":
-                visited[(x, y)].add(dir)
-                # grid[y, x] = "X"
-                x -= dir[0]
-                y -= dir[1]
+        def walk(grid):
+            # yield positions and directions
+            x, y = start_x, start_y
+            dir = (0, -1)
+            while True:
+                yield x, y, dir
+                next_x, next_y = x + dir[0], y + dir[1]
+                if next_y < 0 or next_y >= height or next_x < 0 or next_x >= width:
+                    break
+                if grid[next_y, next_x] == "#":
+                    dir = turn_right(dir)
+                    next_x, next_y = x + dir[0], y + dir[1]
+                x, y = next_x, next_y
 
-        walk_backwards(x, y, dir)
+        loops = 0
+        for coords in np.ndindex(grid.shape):
+            g = np.copy(grid)
+            g[coords] = "#"
 
-        obstacle_positions = set()
-        while True:
-            next_x = x + dir[0]
-            next_y = y + dir[1]
-
-            # check if we're about to walk off the grid
-            if next_y < 0 or next_y >= height or next_x < 0 or next_x >= width:
-                break
-
-            # every time we turn, walk backwards and mark the new direction
-            if grid[next_y, next_x] == "#":
-                dir = turn_right(dir)
-                walk_backwards(x, y, dir)
-
-            next_x = x + dir[0]
-            next_y = y + dir[1]
-
-            if visited_dirs := visited.get((x, y)):
-                # We're on a previously visited spot.
-                # If we turn right, have we already gone that direction?
-                # If so, we could put an obstacle in front of us.
-                if turn_right(dir) in visited_dirs:
-                    obstacle_positions.add((next_x, next_y))
-                    grid[next_y, next_x] = "O"
-
-            visited[(x, y)].add(dir)
-            x, y = next_x, next_y
+            seen = set()
+            for pos in walk(g):
+                if pos in seen:
+                    loops += 1
+                    break
+                seen.add(pos)
 
         # 551 too low
-        print("Part 2:", len(obstacle_positions))
+        # 1864 too low
+        print("Part 2:", loops)
 
     contents = file.read()
-    part1(*parse(contents))
-    part2(*parse(contents))
+    part1(contents)
+    part2(contents)
 
 
 if __name__ == "__main__":
