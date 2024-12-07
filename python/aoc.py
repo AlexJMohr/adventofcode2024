@@ -219,60 +219,46 @@ def day06(file):
     def turn_right(dir):
         return (-dir[1], dir[0])
 
-    def turn_left(dir):
-        return (dir[1], -dir[0])
-
     def parse(contents):
         grid = np.array([list(line) for line in contents.splitlines()])
         starting_coords = np.where(grid == "^")
         x, y = int(starting_coords[1][0]), int(starting_coords[0][0])
         return grid, x, y
 
+    def walk(grid, start_x, start_y):
+        width, height = grid.shape
+        # yield positions and directions
+        x, y = start_x, start_y
+        dir = (0, -1)
+        while True:
+            yield x, y, dir
+            next_x, next_y = x + dir[0], y + dir[1]
+            if next_y < 0 or next_y >= height or next_x < 0 or next_x >= width:
+                break
+            if grid[next_y, next_x] == "#":
+                dir = turn_right(dir)
+                next_x, next_y = x + dir[0], y + dir[1]
+            x, y = next_x, next_y
+
     def part1(contents):
         grid, x, y = parse(contents)
         visited = set()
-        visited.add((x, y))
-
-        dir = (0, -1)  # up
-        width, height = grid.shape
-        while True:
-            next_x = x + dir[0]
-            next_y = y + dir[1]
-            if next_y < 0 or next_y >= height or next_x < 0 or next_x >= width:
-                break
-            elif grid[next_y, next_x] == "#":
-                dir = turn_right(dir)
-            else:
-                x, y = next_x, next_y
-                visited.add((x, y))
-                grid[y, x] = "X"
+        for x, y, _ in walk(grid, x, y):
+            visited.add((x, y))
         print("Part 1:", len(visited))
 
     def part2(contents):
         grid, start_x, start_y = parse(contents)
-        width, height = grid.shape
-
-        def walk(grid):
-            # yield positions and directions
-            x, y = start_x, start_y
-            dir = (0, -1)
-            while True:
-                yield x, y, dir
-                next_x, next_y = x + dir[0], y + dir[1]
-                if next_y < 0 or next_y >= height or next_x < 0 or next_x >= width:
-                    break
-                if grid[next_y, next_x] == "#":
-                    dir = turn_right(dir)
-                    next_x, next_y = x + dir[0], y + dir[1]
-                x, y = next_x, next_y
 
         loops = 0
         for coords in np.ndindex(grid.shape):
+            if grid[coords] != ".":
+                continue
             g = np.copy(grid)
             g[coords] = "#"
 
             seen = set()
-            for pos in walk(g):
+            for pos in walk(g, start_x, start_y):
                 if pos in seen:
                     loops += 1
                     break
