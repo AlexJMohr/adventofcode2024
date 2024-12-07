@@ -289,36 +289,31 @@ def day07(file):
             equations.append((test_val, inputs))
         return equations
 
-    def part1(contents):
-        equations = parse(contents)
+    def test_equations(equations, operators):
         total = 0
         for test_val, inputs in equations:
-            for ops in product([operator.add, operator.mul], repeat=len(inputs) - 1):
+            for ops in product(operators, repeat=len(inputs) - 1):
                 val, remaining_inputs = inputs[0], inputs[1:]
                 for op, x in zip(ops, remaining_inputs):
                     val = op(val, x)
                 if val == test_val:
                     total += test_val
                     break
+        return total
+
+    def part1(contents):
+        equations = parse(contents)
+        operators = [operator.add, operator.mul]
+        total = test_equations(equations, operators)
         print("Part 1:", total)  # 2654749936343
 
     def part2(contents):
-        equations = parse(contents)
-        total = 0
-
         def concat(x, y):
             return int(str(x) + str(y))
 
-        for test_val, inputs in equations:
-            for ops in product(
-                [operator.add, operator.mul, concat], repeat=len(inputs) - 1
-            ):
-                val, remaining_inputs = inputs[0], inputs[1:]
-                for op, x in zip(ops, remaining_inputs):
-                    val = op(val, x)
-                if val == test_val:
-                    total += test_val
-                    break
+        equations = parse(contents)
+        operators = [operator.add, operator.mul, concat]
+        total = test_equations(equations, operators)
         print("Part 2:", total)  # 124060392153684
 
     contents = file.read()
