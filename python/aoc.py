@@ -220,25 +220,29 @@ def day06(file):
         return (-dir[1], dir[0])
 
     def parse(contents):
-        grid = np.array([list(line) for line in contents.splitlines()])
-        starting_coords = np.where(grid == "^")
-        x, y = int(starting_coords[1][0]), int(starting_coords[0][0])
-        return grid, x, y
+        grid = {}
+        start_x, start_y = None, None
+        for y, line in enumerate(contents.splitlines()):
+            for x, char in enumerate(line):
+                grid[(x, y)] = char
+                if char == "^":
+                    start_x, start_y = x, y
+        return grid, start_x, start_y
 
     def walk(grid, start_x, start_y):
         # yield positions and directions
-        width, height = grid.shape
         x, y = start_x, start_y
         dir = (0, -1)
         while True:
             yield x, y, dir
             next_x, next_y = x + dir[0], y + dir[1]
-            if next_y < 0 or next_y >= height or next_x < 0 or next_x >= width:
+            if (next_x, next_y) not in grid:
                 break
-            if grid[next_y, next_x] == "#":
+            if grid[(next_x, next_y)] == "#":
                 dir = turn_right(dir)
                 next_x, next_y = x + dir[0], y + dir[1]
-            x, y = next_x, next_y
+            else:
+                x, y = next_x, next_y
 
     def part1(contents):
         grid, start_x, start_y = parse(contents)
@@ -249,10 +253,10 @@ def day06(file):
         grid, start_x, start_y = parse(contents)
 
         loops = 0
-        for coords in np.ndindex(grid.shape):
-            if grid[coords] != ".":
+        for coords, char in grid.items():
+            if char != ".":
                 continue
-            g = np.copy(grid)
+            g = grid.copy()
             g[coords] = "#"
 
             seen = set()
