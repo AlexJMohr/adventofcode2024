@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 from functools import cmp_to_key
+from itertools import product
+import operator
 import re
 
 import click
@@ -269,6 +271,55 @@ def day06(file):
         # 551 too low
         # 1864 too low
         print("Part 2:", loops)
+
+    contents = file.read()
+    part1(contents)
+    part2(contents)
+
+
+@cli.command()
+@click.argument("file", type=click.File())
+def day07(file):
+    def parse(contents):
+        equations = []
+        for line in contents.splitlines():
+            test_val, rhs = line.split(":")
+            test_val = int(test_val)
+            inputs = [int(x) for x in re.findall(r"(\d+)", rhs)]
+            equations.append((test_val, inputs))
+        return equations
+
+    def part1(contents):
+        equations = parse(contents)
+        total = 0
+        for test_val, inputs in equations:
+            for ops in product([operator.add, operator.mul], repeat=len(inputs) - 1):
+                val, remaining_inputs = inputs[0], inputs[1:]
+                for op, x in zip(ops, remaining_inputs):
+                    val = op(val, x)
+                if val == test_val:
+                    total += test_val
+                    break
+        print("Part 1:", total)  # 2654749936343
+
+    def part2(contents):
+        equations = parse(contents)
+        total = 0
+
+        def concat(x, y):
+            return int(str(x) + str(y))
+
+        for test_val, inputs in equations:
+            for ops in product(
+                [operator.add, operator.mul, concat], repeat=len(inputs) - 1
+            ):
+                val, remaining_inputs = inputs[0], inputs[1:]
+                for op, x in zip(ops, remaining_inputs):
+                    val = op(val, x)
+                if val == test_val:
+                    total += test_val
+                    break
+        print("Part 2:", total)  # 124060392153684
 
     contents = file.read()
     part1(contents)
