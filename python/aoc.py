@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+from dataclasses import dataclass
 import operator
 import re
+from collections import defaultdict
 from functools import cmp_to_key
-from itertools import product
+from itertools import product, combinations
 
 import click
 import numpy as np
@@ -322,6 +324,46 @@ def day07(file):
     contents = file.read()
     part1(contents)
     part2(contents)
+
+
+@dataclass(eq=True, unsafe_hash=True)
+class Vec:
+    x: int
+    y: int
+
+    def __add__(self, other):
+        return Vec(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        return Vec(self.x - other.x, self.y - other.y)
+
+
+@cli.command()
+@click.argument("file", type=click.File())
+def day08(file):
+    contents = file.read()
+    width, height = 0, 0
+    char_positions = defaultdict(list)
+
+    for y, line in enumerate(contents.splitlines()):
+        height += 1
+        width = len(line)
+        for x, char in enumerate(line):
+            if char != ".":
+                char_positions[char].append(Vec(x, y))
+
+    antinode_locations = set()
+    for char, positions in char_positions.items():
+        for p, q in combinations(positions, r=2):
+            delta = p - q
+            pos = p + delta
+            if pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height:
+                antinode_locations.add(pos)
+            pos = q - delta
+            if pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height:
+                antinode_locations.add(pos)
+
+    print("Part 1:", len(antinode_locations))  # 371
 
 
 if __name__ == "__main__":
