@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from functools import cmp_to_key
-from itertools import product
 import operator
 import re
+from functools import cmp_to_key
+from itertools import product
 
 import click
 import numpy as np
