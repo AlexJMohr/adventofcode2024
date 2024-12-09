@@ -341,7 +341,6 @@ class Vec:
 @cli.command()
 @click.argument("file", type=click.File())
 def day08(file):
-
     def parse(contents):
         width, height = 0, 0
         char_positions = defaultdict(list)
