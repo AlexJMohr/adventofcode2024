@@ -341,29 +341,54 @@ class Vec:
 @cli.command()
 @click.argument("file", type=click.File())
 def day08(file):
+
+    def parse(contents):
+        width, height = 0, 0
+        char_positions = defaultdict(list)
+        for y, line in enumerate(contents.splitlines()):
+            height += 1
+            width = len(line)
+            for x, char in enumerate(line):
+                if char != ".":
+                    char_positions[char].append(Vec(x, y))
+
+        return dict(char_positions), width, height
+
+    def part1(contents):
+        char_positions, width, height = parse(contents)
+        antinode_locations = set()
+        for char, positions in char_positions.items():
+            for p, q in combinations(positions, r=2):
+                delta = p - q
+                pos = p + delta
+                if pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height:
+                    antinode_locations.add(pos)
+                pos = q - delta
+                if pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height:
+                    antinode_locations.add(pos)
+
+        print("Part 1:", len(antinode_locations))  # 371
+
+    def part2(contents):
+        char_positions, width, height = parse(contents)
+        antinode_locations = set()
+        for char, positions in char_positions.items():
+            for p, q in combinations(positions, r=2):
+                delta = q - p
+                pos = p + delta
+                while pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height:
+                    antinode_locations.add(pos)
+                    pos += delta
+                pos = q - delta
+                while pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height:
+                    antinode_locations.add(pos)
+                    pos -= delta
+
+        print("Part 2:", len(antinode_locations))  # 1229
+
     contents = file.read()
-    width, height = 0, 0
-    char_positions = defaultdict(list)
-
-    for y, line in enumerate(contents.splitlines()):
-        height += 1
-        width = len(line)
-        for x, char in enumerate(line):
-            if char != ".":
-                char_positions[char].append(Vec(x, y))
-
-    antinode_locations = set()
-    for char, positions in char_positions.items():
-        for p, q in combinations(positions, r=2):
-            delta = p - q
-            pos = p + delta
-            if pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height:
-                antinode_locations.add(pos)
-            pos = q - delta
-            if pos.x >= 0 and pos.x < width and pos.y >= 0 and pos.y < height:
-                antinode_locations.add(pos)
-
-    print("Part 1:", len(antinode_locations))  # 371
+    part1(contents)
+    part2(contents)
 
 
 if __name__ == "__main__":
