@@ -326,7 +326,7 @@ def day07(file):
     part2(contents)
 
 
-@dataclass(eq=True, unsafe_hash=True)
+@dataclass(eq=True)
 class Vec:
     x: int
     y: int
@@ -336,6 +336,9 @@ class Vec:
 
     def __sub__(self, other):
         return Vec(self.x - other.x, self.y - other.y)
+
+    def __hash__(self):
+        return hash((self.x, self.y))
 
 
 @cli.command()
