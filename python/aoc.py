@@ -442,59 +442,106 @@ def day09(file):
             def is_free(self):
                 return self.file_id is None
 
+            def __str__(self):
+                return ("." if self.is_free() else str(self.file_id)) * self.length
+
             def __repr__(self):
                 if self.is_free():
                     return f"Free(start={self.start}, length={self.length})"
                 else:
                     return f"File(start={self.start}, length={self.length}, id={self.file_id})"
 
-        def disk2str(files, free_spaces):
-            entries = files + free_spaces
-            entries.sort(key=lambda e: e.start)
-            return "".join(
-                ("." if e.is_free() else str(e.file_id)) * e.length for e in entries
-            )
+        def disk2str(disk):
+            # disk.sort(key=lambda e: e.start)
+            return "".join(str(e) for e in disk)
 
-        def print_disk(files, free_spaces):
-            print(disk2str(files, free_spaces))
+        def assert_disk_is_valid(disk):
+            disk.sort(key=lambda e: e.start)
+            start = 0
+            for entry in disk:
+                assert entry.start == start
+                start += entry.length
+
+        def print_disk(disk):
+            print(disk2str(disk))
 
         id_sequence = itertools.count()
-        files = []
-        free_spaces = []
+        disk: list[DiskEntry] = []
         start = 0
+        last_file_id = None
         for i, c in enumerate(contents):
             length = int(c)
             if i % 2 != 0:
-                free_spaces.append(DiskEntry(start=start, length=length))
+                disk.append(DiskEntry(start=start, length=length))
             else:
                 file = DiskEntry(start=start, length=length, file_id=next(id_sequence))
-                files.append(file)
+                disk.append(file)
+                last_file_id = file.file_id
             start += length
 
-        print(f"files: {len(files)}")
-        print(f"free_spaces: {len(free_spaces)}")
-        # print(files)
-        # print(free_spaces)
-        print_disk(files, free_spaces)
+        assert_disk_is_valid(disk)
+        # print_disk(disk)
 
-        for file in reversed(files):
-            # print(file)
-            for free_space in free_spaces:
-                if free_space.start < file.start and free_space.length >= file.length:
-                    free_spaces.append(DiskEntry(start=file.start, length=file.length))
-                    file.start = free_space.start
-                    free_space.start += file.length
-                    free_space.length -= file.length
-                    # if free_space.length == 0:
-                    #     free_spaces.pop(i)
-                    print(sorted(free_spaces, key=lambda e: e.start))
-                    print(sorted(files, key=lambda e: e.start))
-                    print_disk(files, free_spaces)
+        current_file_id = last_file_id
+        while current_file_id > 0:
+            for file_idx in range(len(disk) - 1, -1, -1):
+                entry = disk[file_idx]
+                if entry.file_id == current_file_id:
+                    file = entry
                     break
+
+            for free_idx, free in enumerate(disk):
+                if (
+                    free.is_free()
+                    and free.length >= file.length
+                    and free.start < file.start
+                ):
+                    # files up until where free space is
+                    new_disk = disk[:free_idx]
+
+                    # copy file to free space
+                    new_disk.append(
+                        DiskEntry(
+                            start=free.start,
+                            length=file.length,
+                            file_id=file.file_id,
+                        )
+                    )
+
+                    # remaining free space after file
+                    if free.length > file.length:
+                        new_disk.append(
+                            DiskEntry(
+                                start=free.start + file.length,
+                                length=free.length - file.length,
+                            )
+                        )
+
+                    # entries up until where file was
+                    new_disk.extend(disk[free_idx + 1 : file_idx])
+
+                    # replace original file with free space
+                    new_disk.append(DiskEntry(start=file.start, length=file.length))
+
+                    # remainder of disk
+                    new_disk.extend(disk[file_idx + 1 :])
+
+                    # for entry in new_disk:
+                    #     print(" " * entry.start + str(entry))
+                    # exit(1)
+
+                    disk = new_disk
+                    # print_disk(disk)
+                    break
+
+            current_file_id -= 1
+
+        assert_disk_is_valid(disk)
 
         # 85385567582 too low
         # 85385555189 too low
-        print("Part 2:", calculate_checksum(disk2str(files, free_spaces)))
+        # 115416428620 not correct
+        print("Part 2:", calculate_checksum(disk2str(disk)))
 
     contents = file.read()
     part1(contents)
