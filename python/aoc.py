@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass
+import itertools
 import operator
 import re
 from collections import defaultdict
@@ -387,6 +388,113 @@ def day08(file):
                     pos -= delta
 
         print("Part 2:", len(antinode_locations))  # 1229
+
+    contents = file.read()
+    part1(contents)
+    part2(contents)
+
+
+@cli.command()
+@click.argument("file", type=click.File())
+def day09(file):
+    def calculate_checksum(disk):
+        checksum = 0
+        for i, c in enumerate(disk):
+            if c != ".":
+                checksum += int(c) * i
+        return checksum
+
+    def part1(contents):
+        disk = []
+        id_sequence = itertools.count()
+        for i, c in enumerate(contents):
+            length = int(c)
+            if i % 2 != 0:
+                disk.extend(["."] * length)
+            else:
+                disk.extend([str(next(id_sequence))] * length)
+
+        right_index = len(disk) - 1
+        for left_index in range(len(disk)):
+            if disk[left_index] == ".":
+                while disk[right_index] == ".":
+                    right_index -= 1
+                if right_index <= left_index:
+                    break
+                disk[left_index], disk[right_index] = (
+                    disk[right_index],
+                    disk[left_index],
+                )
+
+        print("Part 1:", calculate_checksum(disk))  # 6330095022244
+
+    def part2(contents):
+
+        @dataclass
+        class DiskEntry:
+            start: int
+            length: int
+            file_id: int | None = None
+
+            def is_file(self):
+                return self.file_id is not None
+
+            def is_free(self):
+                return self.file_id is None
+
+            def __repr__(self):
+                if self.is_free():
+                    return f"Free(start={self.start}, length={self.length})"
+                else:
+                    return f"File(start={self.start}, length={self.length}, id={self.file_id})"
+
+        def disk2str(files, free_spaces):
+            entries = files + free_spaces
+            entries.sort(key=lambda e: e.start)
+            return "".join(
+                ("." if e.is_free() else str(e.file_id)) * e.length for e in entries
+            )
+
+        def print_disk(files, free_spaces):
+            print(disk2str(files, free_spaces))
+
+        id_sequence = itertools.count()
+        files = []
+        free_spaces = []
+        start = 0
+        for i, c in enumerate(contents):
+            length = int(c)
+            if i % 2 != 0:
+                free_spaces.append(DiskEntry(start=start, length=length))
+            else:
+                file = DiskEntry(start=start, length=length, file_id=next(id_sequence))
+                files.append(file)
+            start += length
+
+        print(f"files: {len(files)}")
+        print(f"free_spaces: {len(free_spaces)}")
+        # print(files)
+        # print(free_spaces)
+        print_disk(files, free_spaces)
+
+        for file in reversed(files):
+            # print(file)
+            for free_space in free_spaces:
+                if free_space.start < file.start and free_space.length >= file.length:
+                    free_spaces.append(DiskEntry(start=file.start, length=file.length))
+                    file.start = free_space.start
+                    free_space.start += file.length
+                    free_space.length -= file.length
+                    # if free_space.length == 0:
+                    #     free_spaces.pop(i)
+                    print(sorted(free_spaces, key=lambda e: e.start))
+                    print(sorted(files, key=lambda e: e.start))
+                    print_disk(files, free_spaces)
+                    break
+
+        # 85385567582 too low
+        # 85385555189 too low
+        print("Part 2:", calculate_checksum(disk2str(files, free_spaces)))
 
     contents = file.read()
     part1(contents)
