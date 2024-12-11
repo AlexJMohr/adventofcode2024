@@ -456,7 +456,7 @@ def day09(file):
             return "".join(str(e) for e in disk)
 
         def assert_disk_is_valid(disk):
-            disk.sort(key=lambda e: e.start)
+            assert disk == sorted(disk, key=lambda e: e.start)
             start = 0
             for entry in disk:
                 assert entry.start == start
@@ -484,6 +484,7 @@ def day09(file):
 
         current_file_id = last_file_id
         while current_file_id > 0:
+            file = None
             for file_idx in range(len(disk) - 1, -1, -1):
                 entry = disk[file_idx]
                 if entry.file_id == current_file_id:
@@ -543,7 +544,7 @@ def day09(file):
         # 115416428620 not correct
         print("Part 2:", calculate_checksum(disk2str(disk)))
 
-    contents = file.read()
+    contents = file.read().strip()
     part1(contents)
     part2(contents)
 
