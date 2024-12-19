@@ -549,5 +549,78 @@ def day09(file):
     part2(contents)
 
 
+@cli.command()
+@click.argument("file", type=click.File())
+def day10(file):
+    def parse(contents):
+        grid = {}
+        trail_heads = []
+        for y, line in enumerate(contents.splitlines()):
+            for x, char in enumerate(line):
+                height = int(char)
+                grid[(x, y)] = height
+                if height == 0:
+                    trail_heads.append((x, y))
+        return grid, trail_heads
+
+    def part1(contents):
+        grid, trail_heads = parse(contents)
+        def follow_path(pos, found_peaks):
+            if grid[pos] == 9:
+                found_peaks.add(pos)
+                return True
+            x, y = pos
+            neighbours = [
+                (x + 1, y),
+                (x - 1, y),
+                (x, y + 1),
+                (x, y - 1),
+            ]
+            for n in neighbours:
+                if n not in grid:
+                    continue
+                if grid[(x, y)] + 1 == grid[n]:
+                    follow_path(n, found_peaks)
+
+        total = 0
+        for trail_head in trail_heads:
+            found_peaks = set()
+            follow_path(trail_head, found_peaks)
+            total += len(found_peaks)
+    
+        print("Part 1:", total) # 709
+
+    def part2(contents):
+        grid, trail_heads = parse(contents)
+
+        def get_num_trails(pos):
+            x, y = pos
+            if grid[pos] == 9:
+                return 1
+            num_trails = 0
+            neighbours = [
+                (x + 1, y),
+                (x - 1, y),
+                (x, y + 1),
+                (x, y - 1),
+            ]
+            for n in neighbours:
+                if n in grid and grid[(x, y)] + 1 == grid[n]:
+                    num_trails += get_num_trails(n)
+            return num_trails
+    
+        total = 0
+        for trail_head in trail_heads:
+            # get the number of trails that begin at this trail head
+            total += get_num_trails(trail_head)
+        print("Part 2:", total)
+
+
+    contents = file.read().strip()
+    part1(contents)
+    part2(contents)
+
+
+
 if __name__ == "__main__":
     cli()
