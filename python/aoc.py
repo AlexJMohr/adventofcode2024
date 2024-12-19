@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import itertools
 import operator
 import re
-from collections import defaultdict
+from collections import defaultdict, deque
 from functools import cmp_to_key
 from itertools import product, combinations
 
@@ -565,48 +565,52 @@ def day10(file):
 
     def part1(contents):
         grid, trail_heads = parse(contents)
-        def follow_path(pos, found_peaks):
-            if grid[pos] == 9:
-                found_peaks.add(pos)
-                return True
-            x, y = pos
-            neighbours = [
-                (x + 1, y),
-                (x - 1, y),
-                (x, y + 1),
-                (x, y - 1),
-            ]
-            for n in neighbours:
-                if n not in grid:
+        def count_trail_peaks(start):
+            queue = deque([start])
+            found_peaks = set()
+
+            while queue:
+                x, y = queue.popleft()
+                if grid[(x, y)] == 9:
+                    found_peaks.add((x, y))
                     continue
-                if grid[(x, y)] + 1 == grid[n]:
-                    follow_path(n, found_peaks)
+                neighbours = [
+                    (x + 1, y),
+                    (x - 1, y),
+                    (x, y + 1),
+                    (x, y - 1),
+                ]
+                for n in neighbours:
+                    if n in grid and grid[(x, y)] + 1 == grid[n]:
+                        queue.append(n)
+            return len(found_peaks)
 
         total = 0
         for trail_head in trail_heads:
-            found_peaks = set()
-            follow_path(trail_head, found_peaks)
-            total += len(found_peaks)
+            total += count_trail_peaks(trail_head)
     
         print("Part 1:", total) # 709
 
     def part2(contents):
         grid, trail_heads = parse(contents)
 
-        def get_num_trails(pos):
-            x, y = pos
-            if grid[pos] == 9:
-                return 1
+        def get_num_trails(start):
             num_trails = 0
-            neighbours = [
-                (x + 1, y),
-                (x - 1, y),
-                (x, y + 1),
-                (x, y - 1),
-            ]
-            for n in neighbours:
-                if n in grid and grid[(x, y)] + 1 == grid[n]:
-                    num_trails += get_num_trails(n)
+            queue = deque([start])
+            while queue:
+                x, y = queue.popleft()
+                if grid[(x, y)] == 9:
+                    num_trails += 1
+                    continue
+                neighbours = [
+                    (x + 1, y),
+                    (x - 1, y),
+                    (x, y + 1),
+                    (x, y - 1),
+                ]
+                for n in neighbours:
+                    if n in grid and grid[(x, y)] + 1 == grid[n]:
+                        queue.append(n)
             return num_trails
     
         total = 0
