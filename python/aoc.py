@@ -628,24 +628,50 @@ def day10(file):
 @cli.command()
 @click.argument("file", type=click.File())
 def day11(file):
+    def parse(contents):
+        return [int(x) for x in contents.split()]
+    
+    def part1(contents):
+        stones = parse(contents)
+        for _ in range(25):
+            new_stones = []
+            for stone in stones:
+                if stone == 0:
+                    new_stones.append(1)
+                elif len(str(stone)) % 2 == 0:
+                    str_stone = str(stone)
+                    half = len(str_stone) // 2
+                    new_stones.append(int(str_stone[:half]))
+                    new_stones.append(int(str_stone[half:]))
+                else:
+                    new_stones.append(stone * 2024)
+            stones = new_stones
+
+        print("Part 1:", len(stones)) # 189547
+    
+    def part2(contents):
+        stones = parse(contents)
+        stones = {stone: 1 for stone in stones}
+
+        for _ in range(75):
+            new_stones = defaultdict(int)
+            for stone, count in stones.items():
+                if stone == 0:
+                    new_stones[1] += count
+                elif len(str(stone)) % 2 == 0:
+                    str_stone = str(stone)
+                    half = len(str_stone) // 2
+                    new_stones[int(str_stone[:half])] += count
+                    new_stones[int(str_stone[half:])] += count
+                else:
+                    new_stones[stone * 2024] += count
+            stones = new_stones
+        
+        print("Part 2:", sum(stones.values()))  # 224577979481346
+    
     contents = file.read().strip()
-    stones = [int(x) for x in contents.split()]
-
-    for _ in range(25):
-        new_stones = []
-        for stone in stones:
-            if stone == 0:
-                new_stones.append(1)
-            elif len(str(stone)) % 2 == 0:
-                str_stone = str(stone)
-                half = len(str_stone) // 2
-                new_stones.append(int(str_stone[:half]))
-                new_stones.append(int(str_stone[half:]))
-            else:
-                new_stones.append(stone * 2024)
-        stones = new_stones
-
-    print("Part 1:", len(stones)) # 189547
+    part1(contents)
+    part2(contents)
 
 
 if __name__ == "__main__":
