@@ -705,7 +705,7 @@ def day12(file):
                     queue.append(n)
         return region
     
-    def find_perimeter(grid, region):
+    def find_perimeter(region):
         perimiter = 0
         for pos in region:
             x, y = pos
@@ -719,18 +719,45 @@ def day12(file):
                 if n not in region:
                     perimiter += 1
         return perimiter
+    
+    def count_edges(region):
+        edges = 0
+        for pos in region:
+            x, y = pos
+            north = (x, y - 1)
+            east = (x + 1, y)
+            south = (x, y + 1)
+            west = (x - 1, y)
+            north_west = (x - 1, y - 1)
+            south_west = (x - 1, y + 1)
+            north_east = (x + 1, y - 1)
+
+            if north not in region and not (west in region and north_west not in region):
+                edges += 1
+            if south not in region and not (west in region and south_west not in region):
+                edges += 1
+            if west not in region and not (north in region and north_west not in region):
+                edges += 1
+            if east not in region and not (north in region and north_east not in region):
+                edges += 1
+            
+        return edges
 
     visited = set()
-    total = 0
+    total_part1 = 0
+    total_part2 = 0
     for pos in grid:
         if pos not in visited:
             target = grid[pos]
             region = flood(grid, pos, target, visited)
             area = len(region)
-            perimiter = find_perimeter(grid, region)
-            total += area * perimiter
+            perimiter = find_perimeter(region)
+            edges = count_edges(region)
+            total_part1 += area * perimiter
+            total_part2 += area * edges
 
-    print("Part 1:", total) # 1533024
+    print("Part 1:", total_part1) # 1533024
+    print("Part 2:", total_part2) # 910066
 
 
 if __name__ == "__main__":
