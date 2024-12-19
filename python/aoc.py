@@ -674,5 +674,64 @@ def day11(file):
     part2(contents)
 
 
+@cli.command()
+@click.argument("file", type=click.File())
+def day12(file):
+    contents = file.read().strip()
+
+    grid = {}
+    for row, line in enumerate(contents.splitlines()):
+        for col, char in enumerate(line):
+            grid[(row, col)] = char
+    
+    def flood(grid, start, target, visited):
+        queue = deque([start])
+        region = set()
+        while queue:
+            current = queue.popleft()
+            if current in visited:
+                continue
+            visited.add(current)
+            region.add(current)
+            x, y = current
+            neighbours = [
+                (x + 1, y),
+                (x - 1, y),
+                (x, y + 1),
+                (x, y - 1),
+            ]
+            for n in neighbours:
+                if n in grid and n not in visited and grid[n] == target:
+                    queue.append(n)
+        return region
+    
+    def find_perimeter(grid, region):
+        perimiter = 0
+        for pos in region:
+            x, y = pos
+            neighbours = [
+                (x + 1, y),
+                (x - 1, y),
+                (x, y + 1),
+                (x, y - 1),
+            ]
+            for n in neighbours:
+                if n not in region:
+                    perimiter += 1
+        return perimiter
+
+    visited = set()
+    total = 0
+    for pos in grid:
+        if pos not in visited:
+            target = grid[pos]
+            region = flood(grid, pos, target, visited)
+            area = len(region)
+            perimiter = find_perimeter(grid, region)
+            total += area * perimiter
+
+    print("Part 1:", total) # 1533024
+
+
 if __name__ == "__main__":
     cli()
