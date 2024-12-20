@@ -2,8 +2,11 @@
 
 from dataclasses import dataclass
 import itertools
+import functools
 import operator
+import os
 import re
+from PIL import Image
 from collections import defaultdict, deque
 from functools import cmp_to_key
 from itertools import product, combinations
@@ -430,7 +433,6 @@ def day09(file):
         print("Part 1:", calculate_checksum(disk))  # 6330095022244
 
     def part2(contents):
-
         @dataclass
         class DiskEntry:
             start: int
@@ -809,6 +811,98 @@ def day13(file):
 
     print("Part 1:", count_tokens(machines, offset=0))  # 37128
     print("Part 2:", count_tokens(machines, offset=10000000000000))  # 74914228471331
+
+
+@cli.command()
+@click.argument("file", type=click.File())
+def day14(file):
+    contents = file.read().strip()
+
+    robots = []
+    for line in contents.splitlines():
+        pairs = re.findall(r"([0-9-]+),([0-9-]+)", line)
+        p, v = pairs
+        p = (int(p[0]), int(p[1]))
+        v = (int(v[0]), int(v[1]))
+        robots.append((p, v))
+
+    width = 101
+    height = 103
+
+    def print_grid(robots, width, height):
+        position_counts = defaultdict(int)
+        for robot in robots:
+            p, _ = robot
+            position_counts[p] += 1
+        for y in range(height):
+            for x in range(width):
+                count = position_counts[(x, y)]
+                print(count if count > 0 else ".", end="")
+            print()
+
+    os.makedirs("/tmp/day14", exist_ok=True)
+
+    def get_danger_level(robots, width, height):
+        quadrant_counts = defaultdict(int)
+        half_width = width // 2
+        half_height = height // 2
+        for robot in robots:
+            p, v = robot
+            x, y = p
+
+            # top left quadrant:
+            if x < half_width and y < half_height:
+                quadrant_counts["tl"] += 1
+            # top right quadrant:
+            elif x > half_width and y < half_height:
+                quadrant_counts["tr"] += 1
+            # bottom left quadrant:
+            elif x < half_width and y > half_height:
+                quadrant_counts["bl"] += 1
+            # bottom right quadrant:
+            elif x > half_width and y > half_height:
+                quadrant_counts["br"] += 1
+        total = functools.reduce(operator.mul, quadrant_counts.values())
+        return total
+
+    danger_levels = []
+    for i in range(1, 101):
+        new_robots = []
+        for robot in robots:
+            p, v = robot
+            x, y = p
+            dx, dy = v
+
+            x = (x + dx) % width
+            y = (y + dy) % height
+            p = (x, y)
+
+            new_robots.append((p, v))
+        robots = new_robots
+
+        danger_levels.append(get_danger_level(robots, width, height))
+
+        im = Image.new("RGB", (width, height), "white")
+        for robot in robots:
+            p, _ = robot
+            im.putpixel(p, (0, 0, 0))
+        im = im.resize((width * 5, height * 5), Image.NEAREST)
+        im.save("/tmp/day14/{:03d}.png".format(i))
+
+        # print()
+        # print(f"Step {i}")
+        # print("=" * width)
+        # print_grid(robots, width, height)
+        # input("Press Enter to continue...")
+
+    # print_grid(robots, width, height)
+
+    levels = [(x, i) for i, x in enumerate(danger_levels)]
+    levels.sort(key=lambda x: x[0])
+    print(levels)
+
+    total = get_danger_level(robots, width, height)
+    print("Part 1:", total)  # 231019008
 
 
 if __name__ == "__main__":
