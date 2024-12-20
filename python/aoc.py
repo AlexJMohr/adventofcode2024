@@ -565,6 +565,7 @@ def day10(file):
 
     def part1(contents):
         grid, trail_heads = parse(contents)
+
         def count_trail_peaks(start):
             queue = deque([start])
             found_peaks = set()
@@ -588,8 +589,8 @@ def day10(file):
         total = 0
         for trail_head in trail_heads:
             total += count_trail_peaks(trail_head)
-    
-        print("Part 1:", total) # 709
+
+        print("Part 1:", total)  # 709
 
     def part2(contents):
         grid, trail_heads = parse(contents)
@@ -612,13 +613,12 @@ def day10(file):
                     if n in grid and grid[(x, y)] + 1 == grid[n]:
                         queue.append(n)
             return num_trails
-    
+
         total = 0
         for trail_head in trail_heads:
             # get the number of trails that begin at this trail head
             total += get_num_trails(trail_head)
         print("Part 2:", total)
-
 
     contents = file.read().strip()
     part1(contents)
@@ -630,7 +630,7 @@ def day10(file):
 def day11(file):
     def parse(contents):
         return [int(x) for x in contents.split()]
-    
+
     def part1(contents):
         stones = parse(contents)
         for _ in range(25):
@@ -647,8 +647,8 @@ def day11(file):
                     new_stones.append(stone * 2024)
             stones = new_stones
 
-        print("Part 1:", len(stones)) # 189547
-    
+        print("Part 1:", len(stones))  # 189547
+
     def part2(contents):
         stones = parse(contents)
         stones = {stone: 1 for stone in stones}
@@ -666,9 +666,9 @@ def day11(file):
                 else:
                     new_stones[stone * 2024] += count
             stones = new_stones
-        
+
         print("Part 2:", sum(stones.values()))  # 224577979481346
-    
+
     contents = file.read().strip()
     part1(contents)
     part2(contents)
@@ -683,7 +683,7 @@ def day12(file):
     for row, line in enumerate(contents.splitlines()):
         for col, char in enumerate(line):
             grid[(row, col)] = char
-    
+
     def flood(grid, start, target, visited):
         queue = deque([start])
         region = set()
@@ -704,7 +704,7 @@ def day12(file):
                 if n in grid and n not in visited and grid[n] == target:
                     queue.append(n)
         return region
-    
+
     def find_perimeter(region):
         perimiter = 0
         for pos in region:
@@ -719,7 +719,7 @@ def day12(file):
                 if n not in region:
                     perimiter += 1
         return perimiter
-    
+
     def count_edges(region):
         edges = 0
         for pos in region:
@@ -732,15 +732,23 @@ def day12(file):
             south_west = (x - 1, y + 1)
             north_east = (x + 1, y - 1)
 
-            if north not in region and not (west in region and north_west not in region):
+            if north not in region and not (
+                west in region and north_west not in region
+            ):
                 edges += 1
-            if south not in region and not (west in region and south_west not in region):
+            if south not in region and not (
+                west in region and south_west not in region
+            ):
                 edges += 1
-            if west not in region and not (north in region and north_west not in region):
+            if west not in region and not (
+                north in region and north_west not in region
+            ):
                 edges += 1
-            if east not in region and not (north in region and north_east not in region):
+            if east not in region and not (
+                north in region and north_east not in region
+            ):
                 edges += 1
-            
+
         return edges
 
     visited = set()
@@ -756,8 +764,8 @@ def day12(file):
             total_part1 += area * perimiter
             total_part2 += area * edges
 
-    print("Part 1:", total_part1) # 1533024
-    print("Part 2:", total_part2) # 910066
+    print("Part 1:", total_part1)  # 1533024
+    print("Part 2:", total_part2)  # 910066
 
 
 @cli.command()
@@ -770,39 +778,37 @@ def day13(file):
     a = None
     b = None
     for line in contents.splitlines():
-        if line.startswith("Button"):
-            x, y = [int(i) for i in re.findall(r"(\d+)", line)]
-            x, y = int(x), int(y)
-            if a is None:
-                a = (x, y)
-            else:
-                b = (x, y)
+        nums = tuple(int(i) for i in re.findall(r"(\d+)", line))
+        if line.startswith("Button A"):
+            a = nums
+        elif line.startswith("Button B"):
+            b = nums
         elif line.startswith("Prize"):
-            prize_coords = tuple(int(i) for i in re.findall(r"(\d+)", line))
-            machines.append((a, b, prize_coords))
-            a = None
-            b = None
-    
-    def find_steps(a, b, prize_coords):
-        ax, ay = a
-        bx, by = b
-        px, py = prize_coords
+            p = nums
+            machines.append((a, b, p))
 
-        x, y = sympy.symbols("x y")
-        solutions_x = sympy.diophantine(ax * x + bx * y - px)
-        solutions_y = sympy.diophantine(ay * x + by * y - py)
-        if not solutions_x or not solutions_y:
-            return None
-        solution_x = next(iter(solutions_x))
-        solution_y = next(iter(solutions_y))
-        return solution_x, solution_y
-    
-    for machine in machines:
-        a, b, prize_coords = machine
-        print(a, b, prize_coords)
-        steps = find_steps(a, b, prize_coords)
-        if steps is not None:
-            print(steps)
+    def count_tokens(machines, offset):
+        total = 0
+        for machine in machines:
+            a, b, p = machine
+            ax, ay = a
+            bx, by = b
+            px, py = p
+            px += offset
+            py += offset
+            a, b = sympy.symbols("a b", integers=True)
+            eq1 = sympy.Eq(a * ax + b * bx, px)
+            eq2 = sympy.Eq(a * ay + b * by, py)
+            solutions = sympy.linsolve(([eq1, eq2]), (a, b))
+            solutions = [s for s in solutions if s[0].is_integer and s[1].is_integer]
+            if solutions:
+                solutions.sort(key=lambda s: 3 * s[0] + s[1])
+                a, b = solutions[0]
+                total += 3 * a + b
+        return total
+
+    print("Part 1:", count_tokens(machines, offset=0))  # 37128
+    print("Part 2:", count_tokens(machines, offset=10000000000000))  # 74914228471331
 
 
 if __name__ == "__main__":
