@@ -466,30 +466,29 @@ def day09(file):
         def print_disk(disk):
             print(disk2str(disk))
 
-        id_sequence = itertools.count()
         disk: list[DiskEntry] = []
         start = 0
-        last_file_id = None
+        file_id = -1
         for i, c in enumerate(contents):
             length = int(c)
             if i % 2 != 0:
                 disk.append(DiskEntry(start=start, length=length))
             else:
-                file = DiskEntry(start=start, length=length, file_id=next(id_sequence))
-                disk.append(file)
-                last_file_id = file.file_id
+                file_id += 1
+                disk.append(DiskEntry(start=start, length=length, file_id=file_id))
             start += length
 
         assert_disk_is_valid(disk)
         # print_disk(disk)
 
-        current_file_id = last_file_id
-        while current_file_id > 0:
+        while file_id > 0:
             file = None
-            for file_idx in range(len(disk) - 1, -1, -1):
-                entry = disk[file_idx]
-                if entry.file_id == current_file_id:
+            file_idx = None
+            for idx in range(len(disk) - 1, -1, -1):
+                entry = disk[idx]
+                if entry.file_id == file_id:
                     file = entry
+                    file_idx = idx
                     break
 
             for free_idx, free in enumerate(disk):
@@ -536,14 +535,14 @@ def day09(file):
                     # print_disk(disk)
                     break
 
-            current_file_id -= 1
+            file_id -= 1
 
         assert_disk_is_valid(disk)
 
-        # 85385567582 too low
-        # 85385555189 too low
-        # 115416428620 not correct
-        print("Part 2:", calculate_checksum(disk2str(disk)))
+        disk_list = []
+        for entry in disk:
+            disk_list.extend(["." if entry.is_free() else entry.file_id] * entry.length)
+        print("Part 2:", calculate_checksum(disk_list))
 
     contents = file.read().strip()
     part1(contents)
