@@ -10,6 +10,7 @@ from itertools import product, combinations
 
 import click
 import numpy as np
+import sympy
 
 
 @click.group()
@@ -758,6 +759,51 @@ def day12(file):
 
     print("Part 1:", total_part1) # 1533024
     print("Part 2:", total_part2) # 910066
+
+
+@cli.command()
+@click.argument("file", type=click.File())
+def day13(file):
+    contents = file.read().strip()
+
+    machines = []
+
+    a = None
+    b = None
+    for line in contents.splitlines():
+        if line.startswith("Button"):
+            x, y = [int(i) for i in re.findall(r"(\d+)", line)]
+            x, y = int(x), int(y)
+            if a is None:
+                a = (x, y)
+            else:
+                b = (x, y)
+        elif line.startswith("Prize"):
+            prize_coords = tuple(int(i) for i in re.findall(r"(\d+)", line))
+            machines.append((a, b, prize_coords))
+            a = None
+            b = None
+    
+    def find_steps(a, b, prize_coords):
+        ax, ay = a
+        bx, by = b
+        px, py = prize_coords
+
+        x, y = sympy.symbols("x y")
+        solutions_x = sympy.diophantine(ax * x + bx * y - px)
+        solutions_y = sympy.diophantine(ay * x + by * y - py)
+        if not solutions_x or not solutions_y:
+            return None
+        solution_x = next(iter(solutions_x))
+        solution_y = next(iter(solutions_y))
+        return solution_x, solution_y
+    
+    for machine in machines:
+        a, b, prize_coords = machine
+        print(a, b, prize_coords)
+        steps = find_steps(a, b, prize_coords)
+        if steps is not None:
+            print(steps)
 
 
 if __name__ == "__main__":
