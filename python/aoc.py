@@ -799,7 +799,7 @@ def day13(file):
             a, b = sympy.symbols("a b", integers=True)
             eq1 = sympy.Eq(a * ax + b * bx, px)
             eq2 = sympy.Eq(a * ay + b * by, py)
-            solutions = sympy.linsolve(([eq1, eq2]), (a, b))
+            solutions = sympy.linsolve([eq1, eq2], (a, b))
             solutions = [s for s in solutions if s[0].is_integer and s[1].is_integer]
             if solutions:
                 solutions.sort(key=lambda s: 3 * s[0] + s[1])
