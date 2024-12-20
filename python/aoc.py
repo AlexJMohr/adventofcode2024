@@ -10,6 +10,7 @@ from PIL import Image
 from collections import defaultdict, deque
 from functools import cmp_to_key
 from itertools import product, combinations
+from statistics import variance
 
 import click
 import numpy as np
@@ -816,40 +817,32 @@ def day13(file):
 @cli.command()
 @click.argument("file", type=click.File())
 def day14(file):
-    contents = file.read().strip()
-
-    robots = []
-    for line in contents.splitlines():
-        pairs = re.findall(r"([0-9-]+),([0-9-]+)", line)
-        p, v = pairs
-        p = (int(p[0]), int(p[1]))
-        v = (int(v[0]), int(v[1]))
-        robots.append((p, v))
-
     width = 101
     height = 103
 
-    def print_grid(robots, width, height):
-        position_counts = defaultdict(int)
-        for robot in robots:
-            p, _ = robot
-            position_counts[p] += 1
-        for y in range(height):
-            for x in range(width):
-                count = position_counts[(x, y)]
-                print(count if count > 0 else ".", end="")
-            print()
+    def parse(contents):
+        robots = []
+        for line in contents.splitlines():
+            pairs = re.findall(r"([0-9-]+),([0-9-]+)", line)
+            p, v = pairs
+            p = (int(p[0]), int(p[1]))
+            v = (int(v[0]), int(v[1]))
+            robots.append((p, v))
+        return robots
 
-    os.makedirs("/tmp/day14", exist_ok=True)
+    def simulate(robots, t):
+        return [
+            ((x + dx * t) % width, (y + dy * t) % height) for (x, y), (dx, dy) in robots
+        ]
 
-    def get_danger_level(robots, width, height):
+    def part1(contents):
+        robots = parse(contents)
+        positions = simulate(robots, 100)
         quadrant_counts = defaultdict(int)
         half_width = width // 2
         half_height = height // 2
-        for robot in robots:
-            p, v = robot
+        for p in positions:
             x, y = p
-
             # top left quadrant:
             if x < half_width and y < half_height:
                 quadrant_counts["tl"] += 1
@@ -863,46 +856,34 @@ def day14(file):
             elif x > half_width and y > half_height:
                 quadrant_counts["br"] += 1
         total = functools.reduce(operator.mul, quadrant_counts.values())
-        return total
+        print("Part 1:", total)  # 231019008
 
-    danger_levels = []
-    for i in range(1, 101):
-        new_robots = []
-        for robot in robots:
-            p, v = robot
-            x, y = p
-            dx, dy = v
+    def part2(contents):
+        robots = parse(contents)
 
-            x = (x + dx) % width
-            y = (y + dy) % height
-            p = (x, y)
+        best_x = 0
+        best_x_variance = 10 * 100
+        best_y = 0
+        best_y_variance = 10 * 1000
+        for t in range(max(width, height)):
+            xs, ys = zip(*simulate(robots, t))
+            xvar = variance(xs)
+            yvar = variance(ys)
+            if xvar < best_x_variance:
+                best_x = t
+                best_x_variance = xvar
+            if yvar < best_y_variance:
+                best_y = t
+                best_y_variance = yvar
 
-            new_robots.append((p, v))
-        robots = new_robots
+        best_t = (
+            best_x + ((pow(width, -1, height) * (best_y - best_x)) % height) * width
+        )
+        print("Part 2:", best_t)  # 8280
 
-        danger_levels.append(get_danger_level(robots, width, height))
-
-        im = Image.new("RGB", (width, height), "white")
-        for robot in robots:
-            p, _ = robot
-            im.putpixel(p, (0, 0, 0))
-        im = im.resize((width * 5, height * 5), Image.NEAREST)
-        im.save("/tmp/day14/{:03d}.png".format(i))
-
-        # print()
-        # print(f"Step {i}")
-        # print("=" * width)
-        # print_grid(robots, width, height)
-        # input("Press Enter to continue...")
-
-    # print_grid(robots, width, height)
-
-    levels = [(x, i) for i, x in enumerate(danger_levels)]
-    levels.sort(key=lambda x: x[0])
-    print(levels)
-
-    total = get_danger_level(robots, width, height)
-    print("Part 1:", total)  # 231019008
+    contents = file.read().strip()
+    part1(contents)
+    part2(contents)
 
 
 if __name__ == "__main__":
