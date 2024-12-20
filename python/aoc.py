@@ -862,9 +862,9 @@ def day14(file):
         robots = parse(contents)
 
         best_x = 0
-        best_x_variance = 10 * 100
+        best_x_variance = float("inf")
         best_y = 0
-        best_y_variance = 10 * 1000
+        best_y_variance = float("inf")
         for t in range(max(width, height)):
             xs, ys = zip(*simulate(robots, t))
             xvar = variance(xs)
