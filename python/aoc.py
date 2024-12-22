@@ -953,7 +953,6 @@ def day15(file):
 
         for instruction in instructions:
             dir = dir_map[instruction]
-
             queue = deque([robot_pos])
             seen = set()
             hit_wall = False
