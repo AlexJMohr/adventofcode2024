@@ -4,9 +4,7 @@ from dataclasses import dataclass
 import itertools
 import functools
 import operator
-import os
 import re
-from PIL import Image
 from collections import defaultdict, deque
 from functools import cmp_to_key
 from itertools import product, combinations
@@ -884,6 +882,63 @@ def day14(file):
     contents = file.read().strip()
     part1(contents)
     part2(contents)
+
+
+@cli.command()
+@click.argument("file", type=click.File())
+def day15(file):
+    contents = file.read().strip()
+
+    def parse(contents):
+        grid = {}
+        width = 0
+        height = 0
+        start = None
+        lines = contents.splitlines()
+        for y, line in enumerate(lines):
+            if line.strip() == "":
+                break
+            height += 1
+            width = len(line)
+            for x, char in enumerate(line):
+                grid[Vec(x, y)] = char
+                if char == "@":
+                    start = Vec(x, y)
+
+        instructions = "".join(lines[y + 1 :])
+
+        return grid, width, height, start, instructions
+
+    def print_grid(grid, w, h):
+        for y in range(h):
+            for x in range(w):
+                print(grid[Vec(x, y)], end="")
+            print()
+
+    grid, width, height, robot_pos, instructions = parse(contents)
+    dir_map = {"^": Vec(0, -1), "v": Vec(0, 1), "<": Vec(-1, 0), ">": Vec(1, 0)}
+    print(instructions)
+    for instruction in instructions:
+        dir = dir_map[instruction]
+        # print(instruction, dir, f"{robot_pos=}")
+        pos = robot_pos
+        while grid[pos] not in "#.":
+            pos += dir
+
+        if grid[pos] == ".":
+            while pos != robot_pos:
+                grid[pos], grid[pos - dir] = grid[pos - dir], grid[pos]
+                pos -= dir
+
+            robot_pos += dir
+        # print_grid(grid, width, height)
+        # print()
+
+    total = 0
+    for pos, char in grid.items():
+        if char == "O":
+            total += pos.y * 100 + pos.x
+    print("Part 1:", total)  # 1456590
 
 
 if __name__ == "__main__":
