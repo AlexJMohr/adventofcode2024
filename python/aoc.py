@@ -341,6 +341,9 @@ class Vec:
     def __sub__(self, other):
         return Vec(self.x - other.x, self.y - other.y)
 
+    def __mul__(self, other):
+        return Vec(self.x * other, self.y * other)
+
     def __hash__(self):
         return hash((self.x, self.y))
 
@@ -887,7 +890,7 @@ def day14(file):
 @cli.command()
 @click.argument("file", type=click.File())
 def day15(file):
-    contents = file.read().strip()
+    dir_map = {"^": Vec(0, -1), "v": Vec(0, 1), "<": Vec(-1, 0), ">": Vec(1, 0)}
 
     def parse(contents):
         grid = {}
@@ -915,30 +918,79 @@ def day15(file):
                 print(grid[Vec(x, y)], end="")
             print()
 
-    grid, width, height, robot_pos, instructions = parse(contents)
-    dir_map = {"^": Vec(0, -1), "v": Vec(0, 1), "<": Vec(-1, 0), ">": Vec(1, 0)}
-    print(instructions)
-    for instruction in instructions:
-        dir = dir_map[instruction]
-        # print(instruction, dir, f"{robot_pos=}")
-        pos = robot_pos
-        while grid[pos] not in "#.":
-            pos += dir
+    def part1(contents):
+        grid, width, height, robot_pos, instructions = parse(contents)
+        dir_map = {"^": Vec(0, -1), "v": Vec(0, 1), "<": Vec(-1, 0), ">": Vec(1, 0)}
+        for instruction in instructions:
+            dir = dir_map[instruction]
+            pos = robot_pos
+            while grid[pos] not in "#.":
+                pos += dir
 
-        if grid[pos] == ".":
-            while pos != robot_pos:
-                grid[pos], grid[pos - dir] = grid[pos - dir], grid[pos]
-                pos -= dir
+            if grid[pos] == ".":
+                while pos != robot_pos:
+                    grid[pos], grid[pos - dir] = grid[pos - dir], grid[pos]
+                    pos -= dir
+                robot_pos += dir
 
-            robot_pos += dir
-        # print_grid(grid, width, height)
-        # print()
+        total = 0
+        for pos, char in grid.items():
+            if char == "O":
+                total += pos.y * 100 + pos.x
+        print("Part 1:", total)  # 1456590
 
-    total = 0
-    for pos, char in grid.items():
-        if char == "O":
-            total += pos.y * 100 + pos.x
-    print("Part 1:", total)  # 1456590
+    def part2(contents):
+        grid, width, height, robot_pos, instructions = parse(contents)
+
+        new_grid = {}
+        replacements = {"O": "[]", ".": "..", "@": "@.", "#": "##"}
+        for pos, char in grid.items():
+            new_grid[Vec(pos.x * 2, pos.y)] = replacements[char][0]
+            new_grid[Vec(pos.x * 2 + 1, pos.y)] = replacements[char][1]
+        grid = new_grid
+        width *= 2
+        robot_pos.x *= 2
+
+        for instruction in instructions:
+            dir = dir_map[instruction]
+
+            queue = deque([robot_pos])
+            seen = set()
+            hit_wall = False
+            while queue:
+                pos = queue.popleft()
+                if pos in seen:
+                    continue
+                seen.add(pos)
+                next_pos = pos + dir
+                if grid[next_pos] == "#":
+                    hit_wall = True
+                    break
+                elif grid[next_pos] == "[":
+                    queue.append(next_pos)
+                    queue.append(Vec(next_pos.x + 1, next_pos.y))
+                elif grid[next_pos] == "]":
+                    queue.append(next_pos)
+                    queue.append(Vec(next_pos.x - 1, next_pos.y))
+
+            if not hit_wall:
+                while len(seen) > 0:
+                    for p in sorted(seen, key=lambda p: (p.y, p.x)):
+                        q = p + dir
+                        if q not in seen:
+                            grid[p], grid[q] = grid[q], grid[p]
+                            seen.remove(p)
+                robot_pos += dir
+
+        total = 0
+        for pos, char in grid.items():
+            if char == "[":
+                total += pos.y * 100 + pos.x
+        print("Part 2:", total)  # 1489116
+
+    contents = file.read().strip()
+    # part1(contents)
+    part2(contents)
 
 
 if __name__ == "__main__":
